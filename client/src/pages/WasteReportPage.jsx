@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import toast from 'react-hot-toast';
@@ -34,7 +34,7 @@ const WasteReportPage = () => {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/waste-reports', {
+      await api.post('/api/waste-reports', {
         lat: position.lat,
         lng: position.lng,
         description,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -10,44 +10,86 @@ const LocatePage = () => {
     { id: '3', lat: 12.9700, lng: 77.5960, name: 'Library Entrance', status: 'available' }
   ]);
 
+  const mapRef = useRef(null);
+  const userMarkerRef = useRef(null);
+  const watcherIdRef = useRef(null);
+  const dustbinsRef = useRef(dustbins);
+
   useEffect(() => {
     AOS.init();
     const initMap = () => {
-      const map = new window.google.maps.Map(document.getElementById("map"), {
+      // initialize map once
+      mapRef.current = new window.google.maps.Map(document.getElementById("map"), {
         center: { lat: 12.9716, lng: 77.5946 },
         zoom: 15,
       });
 
+      // prepare SVG icons for Google Maps markers (available=green, full=red)
+  const availableIcon = { url: '/icons/dustbin-available-icon.svg', scaledSize: new window.google.maps.Size(36, 48) };
+  const fullIcon = { url: '/icons/dustbin-full-icon.svg', scaledSize: new window.google.maps.Size(36, 48) };
+
+      // add static markers for dustbins using appropriate icon
+      dustbinsRef.current.forEach(db => {
+        new window.google.maps.Marker({
+          position: { lat: db.lat, lng: db.lng },
+          map: mapRef.current,
+          title: db.name,
+          icon: db.status === 'available' ? availableIcon : fullIcon,
+        });
+      });
+
+  // user location icon: use same red pin as full dustbin (URL)
+  const userIcon = { url: '/icons/user-location.svg', scaledSize: new window.google.maps.Size(36, 48) };
+
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
+        watcherIdRef.current = navigator.geolocation.watchPosition(
           (position) => {
-            const pos = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
-            map.setCenter(pos);
-            new window.google.maps.Marker({
-              position: pos,
-              map: map,
-              title: 'Your Location'
+            const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
+            mapRef.current.setCenter(pos);
+
+            if (!userMarkerRef.current) {
+              userMarkerRef.current = new window.google.maps.Marker({
+                position: pos,
+                map: mapRef.current,
+                title: 'Your Location',
+                icon: userIcon
+              });
+            } else {
+              userMarkerRef.current.setPosition(pos);
+            }
+
+            // update distances using the ref to avoid stale closure
+            setDustbins(prev => {
+              const updated = dustbinsRef.current.map(db => ({
+                ...db,
+                distance: calculateDistance(pos.lat, pos.lng, db.lat, db.lng)
+              })).sort((a, b) => a.distance - b.distance);
+              return updated;
             });
-            const sortedDustbins = dustbins.map(db => ({
-              ...db,
-              distance: calculateDistance(pos.lat, pos.lng, db.lat, db.lng)
-            })).sort((a, b) => a.distance - b.distance);
-            setDustbins(sortedDustbins);
           },
-          () => {
-            const sortedDustbins = dustbins.map(db => ({
-              ...db,
-              distance: calculateDistance(map.getCenter().lat(), map.getCenter().lng(), db.lat, db.lng)
-            })).sort((a, b) => a.distance - b.distance);
-            setDustbins(sortedDustbins);
-          }
+          (err) => {
+            console.warn('Geolocation error:', err);
+          },
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
         );
       }
     };
+
     initMap();
+  }, []);
+
+  // keep dustbinsRef up-to-date
+  useEffect(() => {
+    dustbinsRef.current = dustbins;
+  }, [dustbins]);
+
+  // cleanup watcher on unmount
+  useEffect(() => {
+    return () => {
+      if (watcherIdRef.current && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watcherIdRef.current);
+      }
+    };
   }, []);
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {

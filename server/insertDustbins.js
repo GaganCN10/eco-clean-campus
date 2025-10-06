@@ -4,31 +4,32 @@ require('dotenv').config({ path: './.env' });
 
 const dustbinLocations = [
   {
-    name: "Near gate",
+    name: "Mech auditorium",
     location: {
       type: "Point",
-      coordinates: [76.61413401934064, 12.313050749704773], // [Longitude, Latitude] - Example: Near the library
+      coordinates: [76.6126786443111, 12.314254726254102], // [Longitude, Latitude] - Example: Near the library
     },
   },
   {
-    name: "Gym",
+    name: "Golden Jubliee",
     location: {
       type: "Point",
-      coordinates: [76.6144594121166, 12.312173377313897], // [Longitude, Latitude] - Example: Near the cafeteria
+      coordinates: [76.61419077339373,12.316085281627188], // [Longitude, Latitude] - Example: Near the main auditorium
+    },
+  },
+  
+  {
+    name: "Quadrangle",
+    location: {
+      type: "Point",
+      coordinates: [76.61322298055934, 12.313435495302874], // [Longitude, Latitude] - Example: Near the cafeteria
     },
   },
   {
-    name: "Reference Hall",
+    name: "EC dept",
     location: {
       type: "Point",
-      coordinates: [76.61349788732163, 12.313212365167118], // [Longitude, Latitude] - Example: Near the main auditorium
-    },
-  },
-  {
-    name: "gag",
-    location: {
-      type: "Point",
-      coordinates: [76.61350533748366, 12.318923210023375], // [Longitude, Latitude] - Example: In front of a hostel
+      coordinates: [76.61302024351716, 12.313123665225676], // [Longitude, Latitude] - Example: In front of a hostel
     },
   },
 ];

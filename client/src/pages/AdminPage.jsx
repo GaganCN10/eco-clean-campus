@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 const AdminPage = () => {
@@ -18,7 +18,7 @@ const AdminPage = () => {
   const fetchReports = React.useCallback(async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await axios.get('http://localhost:5000/api/admin/reports', {
+      const res = await api.get('/api/admin/reports', {
         headers: {
           'x-auth-token': token
         }
@@ -40,7 +40,7 @@ const AdminPage = () => {
   const handleMarkAsClean = async (id) => {
     try {
       const token = localStorage.getItem('adminToken');
-      await axios.put(`http://localhost:5000/api/admin/clean/${id}`, {}, {
+      await api.put(`/api/admin/clean/${id}`, {}, {
         headers: {
           'x-auth-token': token
         }

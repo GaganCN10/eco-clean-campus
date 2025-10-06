@@ -1,10 +1,30 @@
 // client/src/pages/LocateDustbinPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
+
+const dustbinIconAvailable = new L.Icon({
+  iconUrl: '/icons/dustbin-available-icon.svg',
+  iconSize: [36, 48],
+  iconAnchor: [18, 48],
+  popupAnchor: [0, -48]
+});
+const dustbinIconFull = new L.Icon({
+  iconUrl: '/icons/dustbin-full-icon.svg',
+  iconSize: [36, 48],
+  iconAnchor: [18, 48],
+  popupAnchor: [0, -48]
+});
+// user location pin (same as full dustbin red)
+const userPinIcon = new L.Icon({
+  iconUrl: '/icons/user-location.svg',
+  iconSize: [36, 48],
+  iconAnchor: [18, 48],
+  popupAnchor: [0, -48]
+});
 
 const LocateDustbinPage = () => {
   const [userLocation, setUserLocation] = useState(null);
@@ -12,28 +32,34 @@ const LocateDustbinPage = () => {
   const [loading, setLoading] = useState(true);
   const [nearestDustbin, setNearestDustbin] = useState(null);
 
+  const mapRef = useRef(null);
+
   useEffect(() => {
-    // Get user's current location
+    // Use watchPosition to get device location; set initial center once we have it
     if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
+      const id = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation([latitude, longitude]);
+          // stop the initial watcher -- we only needed initial center here
+          navigator.geolocation.clearWatch(id);
         },
         (error) => {
           console.error('Geolocation error:', error);
           toast.error('Could not retrieve your location. Showing all dustbins.');
-        }
+        },
+        { enableHighAccuracy: true, maximumAge: 5000 }
       );
     } else {
       toast.error('Geolocation is not supported by your browser.');
     }
 
+
     // Fetch dustbin data from your backend
-    const fetchDustbins = async () => {
-      try {
-        const res = await axios.get('http://localhost:5000/api/dustbins');
-        setDustbins(res.data);
+      const fetchDustbins = async () => {
+        try {
+          const res = await api.get('/api/dustbins');
+          setDustbins(res.data);
       } catch (err) {
         toast.error('Failed to fetch dustbin locations.');
         console.error(err);
@@ -44,6 +70,13 @@ const LocateDustbinPage = () => {
 
     fetchDustbins();
   }, []);
+
+  // Recenter Leaflet map when userLocation becomes available
+  useEffect(() => {
+    if (mapRef.current && userLocation) {
+      mapRef.current.setView(userLocation, 16);
+    }
+  }, [userLocation]);
 
   useEffect(() => {
     if (userLocation && dustbins.length > 0) {
@@ -63,10 +96,11 @@ const LocateDustbinPage = () => {
     }
   }, [userLocation, dustbins]);
 
-  const LocationMarker = () => {
-    useMap().setView(userLocation || [12.31639, 76.61380], 16);
+    const LocationMarker = () => {
+    useMap().setView(userLocation, 16);
+    //|| [12.31639, 76.61380]
     return userLocation === null ? null : (
-      <Marker position={userLocation}>
+      <Marker position={userLocation} icon={userPinIcon}>
         <Popup>You are here!</Popup>
       </Marker>
     );
@@ -92,6 +126,7 @@ const LocateDustbinPage = () => {
         )}
         <div className="w-full h-full">
           <MapContainer
+            whenCreated={(mapInstance) => { mapRef.current = mapInstance }}
             center={userLocation || [12.31639, 76.61380]}
             zoom={16}
             scrollWheelZoom={true}
@@ -110,6 +145,7 @@ const LocateDustbinPage = () => {
                   dustbin.location.coordinates[1],
                   dustbin.location.coordinates[0],
                 ]}
+                icon={dustbin.status === 'available' ? dustbinIconAvailable : dustbinIconFull}
               >
                 <Popup>
                   <span className="font-semibold">{dustbin.name}</span>

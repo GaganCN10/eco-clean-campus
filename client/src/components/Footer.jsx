@@ -10,25 +10,25 @@ const Footer = () => {
           <p className="text-sm">
             Empowering our community to maintain a clean and sustainable environment.
           </p>
-          <div className="flex mt-4 space-x-4" >
-            <a href="#" className="text-gray-400 hover:text-white transition duration-300">
+          {/* <div className="flex mt-4 space-x-4" >
+            <a href="/" className="text-gray-400 hover:text-white transition duration-300">
               <i data-feather="facebook" className="h-5 w-5"></i>
             </a>
-            <a href="#" className="text-gray-400 hover:text-white transition duration-300">
+            <a href="/report-waste" className="text-gray-400 hover:text-white transition duration-300">
               <i data-feather="twitter" className="h-5 w-5"></i>
             </a>
             <a href="#" className="text-gray-400 hover:text-white transition duration-300">
               <i data-feather="instagram" className="h-5 w-5"></i>
             </a>
-          </div>
+          </div> */}
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
           <ul className="space-y-2 text-sm">
-            <li><NavLink to="/" className="hover:text-white transition duration-300">Home</NavLink></li>
-            <li><NavLink to="/report" className="hover:text-white transition duration-300">Report Waste</NavLink></li>
-            <li><NavLink to="/locate" className="hover:text-white transition duration-300">Locate Dustbins</NavLink></li>
-            <li><NavLink to="/admin-login" className="hover:text-white transition duration-300">Admin Login</NavLink></li>
+            <li><NavLink to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="hover:text-white transition duration-300">Home</NavLink></li>
+            <li><NavLink to="/report-waste" className="hover:text-white transition duration-300">Report Waste</NavLink></li>
+            <li><NavLink to="/locate-dustbins" className="hover:text-white transition duration-300">Locate Dustbins</NavLink></li>
+            <li><NavLink to="/admin" className="hover:text-white transition duration-300">Admin Login</NavLink></li>
           </ul>
         </div>
         <div>
